@@ -12,22 +12,40 @@ import web3 from '../../../ethereum/web3';
 
 export async function getServerSideProps(props)
 {
-    const accounts = await web3.eth.getAccounts();
+    let recordCount;
 
-    const recordNumbersList = await contract.methods.getRecordNumbers().call();
+    try
+    {
+        recordCount = await contract.methods.getRecordCount(props.query.doctorAddress).call();
+    }
+    catch(err)
+    {
+        console.log(err);
+    }
 
-    const records = await Promise.all
-    (
-        recordNumbersList.map
-        ( 
-            (index) => contract.methods.records(index).call()
-        )
-    );
+    let records;
+    
+    if(recordCount)
+    {
+        const recordNumbersList = await contract.methods.getRecordNumbers(props.query.doctorAddress).call();
+
+        records = await Promise.all
+        (
+            recordNumbersList.map
+            ( 
+                (index) => contract.methods.records(index).call()
+            )
+        );
+    }
+    else
+    {
+        records = [];
+    }
 
     return { 
         props : 
         {
-            address: props.query.address,
+            address: props.query.doctorAddress,
             records: JSON.parse(JSON.stringify(records))
         }
     };

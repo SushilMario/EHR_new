@@ -46,8 +46,7 @@ export async function getServerSideProps(props)
         props : 
         {
             address: props.query.doctorAddress,
-            // records: JSON.parse(JSON.stringify(records))
-            records: []
+            records: JSON.parse(JSON.stringify(records))
         }
     };
 }
