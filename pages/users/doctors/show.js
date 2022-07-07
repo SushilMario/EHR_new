@@ -12,11 +12,17 @@ import web3 from '../../../ethereum/web3';
 
 export async function getServerSideProps(props)
 {
-    let recordCount;
+    const { doctorAddress } = props.query;
+
+    let recordCount, doctor;
 
     try
     {
-        recordCount = await contract.methods.getRecordCount(props.query.doctorAddress).call();
+        doctor = await contract.methods.getDoctor(doctorAddress).call();
+        
+        // recordCount = await contract.methods.getRecordCount(doctorAddress).call();
+
+        recordCount = doctor['2'];
     }
     catch(err)
     {
@@ -27,13 +33,15 @@ export async function getServerSideProps(props)
     
     if(recordCount)
     {
-        const recordNumbersList = await contract.methods.getRecordNumbers(props.query.doctorAddress).call();
+        // const recordNumbersList = await contract.methods.getRecordNumbers(doctorAddress).call();
+
+        const recordNumbersList = doctor['3'];
 
         records = await Promise.all
         (
             recordNumbersList.map
             ( 
-                (index) => contract.methods.records(index).call()
+                (index) => contract.methods.recordList(index).call()
             )
         );
     }
@@ -45,8 +53,9 @@ export async function getServerSideProps(props)
     return { 
         props : 
         {
-            address: props.query.doctorAddress,
-            records: JSON.parse(JSON.stringify(records))
+            address: doctorAddress,
+            records: JSON.parse(JSON.stringify(records)),
+            recordCount
         }
     };
 }
@@ -64,9 +73,9 @@ class DoctorShow extends Component
                 return (
                     <RecordRow 
                         key = { index }
-                        number = { record.recordNumber }
+                        number = { record['0'] }
                         record = { record }
-                        routeStart = { `/users/doctors/${this.props.address}/` }
+                        routeStart = { `/users/doctors/${this.props.address}` }
                     />
                 );
             }

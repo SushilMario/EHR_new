@@ -119,18 +119,24 @@ contract Contract
         addressToDoctorMapping[doctorAddress] = doctor;
     }
 
+    // Get doctor address list
+
     function getDoctorList() public view returns(address[] memory)
     {
         return doctorList;
     }
 
-    function getDoctor(address doctorAddress) public view returns(string memory, string memory)
+    // Get doctor
+
+    function getDoctor(address doctorAddress) public view returns(string memory, string memory, uint, uint[] memory)
     {
         Doctor memory doctor = addressToDoctorMapping[doctorAddress];
 
         return (
             doctor.name,
-            doctor.phoneNumber
+            doctor.phoneNumber,
+            doctor.recordCount,
+            doctor.recordNumberList
         );
     }
 
@@ -151,6 +157,20 @@ contract Contract
         addressToPatientMapping[patientAddress] = patient;
 
         patientList.push(patientAddress);
+    }
+
+    // Get patient
+
+    function getPatient(address patientAddress) public view returns(string memory, string memory, uint, uint[] memory)
+    {
+        Patient memory patient = addressToPatientMapping[patientAddress];
+
+        return (
+            patient.name,
+            patient.phoneNumber,
+            patient.recordCount,
+            patient.recordNumberList
+        );
     }
 
     // Assign doctor to patient and vice versa
@@ -176,7 +196,7 @@ contract Contract
 
     // Check if is assigned to Doctor
 
-    function isAssignedToDoctor(address patientAddress) public view doctorOnly returns(bool)
+    function isAssignedToDoctor(address patientAddress) public view returns(bool)
     {
         return patientToDoctorMapping[patientAddress] == msg.sender;
     }
@@ -209,11 +229,13 @@ contract Contract
     {
         if(doctorRole.has(msg.sender))
         {
-            return addressToDoctorMapping[msg.sender].recordCount;
+            Doctor memory doctor = addressToDoctorMapping[msg.sender];
+            return doctor.recordCount;
         }
         else
         {
-            return addressToPatientMapping[msg.sender].recordCount;
+            Patient memory patient = addressToPatientMapping[msg.sender];
+            return patient.recordCount;
         }
     }
 
@@ -223,11 +245,13 @@ contract Contract
     {
         if(doctorRole.has(msg.sender))
         {
-            return addressToDoctorMapping[msg.sender].recordNumberList;
+            Doctor memory doctor = addressToDoctorMapping[msg.sender];
+            return doctor.recordNumberList;
         }
         else
         {
-            return addressToPatientMapping[msg.sender].recordNumberList;
+            Patient memory patient = addressToPatientMapping[msg.sender];
+            return patient.recordNumberList;
         }
     }
 
@@ -277,19 +301,19 @@ contract Contract
 
     modifier adminOnly()
     {
-        require(adminRole.has(msg.sender) == true, 'Admin only');
+        require(adminRole.has(msg.sender), 'Admin only');
         _;
     }
 
     modifier doctorOnly()
     {
-        require(doctorRole.has(msg.sender) == true, 'Doctor only');
+        require(doctorRole.has(msg.sender), 'Doctor only');
         _;
     }
 
     modifier patientOnly()
     {
-        require(patientRole.has(msg.sender) == true, 'Patient only');
+        require(patientRole.has(msg.sender), 'Patient only');
         _;
     }
 

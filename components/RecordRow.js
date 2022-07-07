@@ -20,10 +20,10 @@ class RecordRow extends Component
                     { number }
                 </Cell>
                 <Cell textAlign = 'center'>
-                    { record.doctorName }
+                    { record['1'] }
                 </Cell>
                 <Cell textAlign = 'center'>
-                    { record.patientName }
+                    { record['2'] }
                 </Cell>
                 <Cell textAlign = 'center'>
                     <Link route = { `${routeStart}/records/${number}` }>

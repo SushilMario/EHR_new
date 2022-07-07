@@ -4,5 +4,5 @@ import Contract from './build/Contract.json';
 export default new web3.eth.Contract
 (
     Contract["abi"],
-    '0xD3711852A1A59869D665791bcAaEC7143ab45f9c'
+    '0x26122402774585976eCf76eb80419e94DbE22d12'
 );

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Layout from '../../../components/Layout';
-import { Button, Input, Form, Message } from 'semantic-ui-react';
+import { Button, Input, Form, Message, Table } from 'semantic-ui-react';
 import RecordRow from '../../../components/RecordRow';
 
 import 'semantic-ui-css/semantic.min.css';
@@ -10,13 +10,18 @@ import { Link, Router } from '../../../routes';
 import contract from '../../../ethereum/contract';
 import web3 from '../../../ethereum/web3';
 
-export async function getServerSideProps(props)
-{
-    let recordCount;
+export async function getServerSideProps(props) {
+    const { patientAddress } = props.query;
+
+    let recordCount, patient;
 
     try
     {
-        recordCount = await contract.methods.getRecordCount(props.query.doctorAddress).call();
+        patient = await contract.methods.getpatient(patientAddress).call();
+        
+        // recordCount = await contract.methods.getRecordCount(patientAddress).call();
+
+        recordCount = patient['2'];
     }
     catch(err)
     {
@@ -27,13 +32,15 @@ export async function getServerSideProps(props)
     
     if(recordCount)
     {
-        const recordNumbersList = await contract.methods.getRecordNumbers(props.query.doctorAddress).call();
+        // const recordNumbersList = await contract.methods.getRecordNumbers(patientAddress).call();
+
+        const recordNumbersList = patient['3'];
 
         records = await Promise.all
         (
             recordNumbersList.map
             ( 
-                (index) => contract.methods.records(index).call()
+                (index) => contract.methods.recordList(index).call()
             )
         );
     }
@@ -42,35 +49,33 @@ export async function getServerSideProps(props)
         records = [];
     }
 
-    return { 
-        props : 
+    return {
+        props:
         {
-            address: props.query.doctorAddress,
-            records: JSON.parse(JSON.stringify(records))
+            address: props.query.patientAddress,
+            records: JSON.parse(JSON.stringify(records)),
+            recordCount
         }
     };
 }
 
-class PatientShow extends Component
-{
-    render()
-    {
+class PatientShow extends Component {
+    render() {
         const { Header, HeaderCell, Body, Row } = Table;
 
         const recordRows = this.props.records.map
-        (
-            (record, index) => 
-            {
-                return (
-                    <RecordRow 
-                        key = { index }
-                        number = { record.recordNumber }
-                        record = { record }
-                        routeStart = { `/users/patients/${this.props.address}/` }
-                    />
-                );
-            }
-        );
+            (
+                (record, index) => {
+                    return (
+                        <RecordRow
+                            key={index}
+                            number={record['0']}
+                            record={record}
+                            routeStart={`/users/patients/${this.props.address}`}
+                        />
+                    );
+                }
+            );
 
 
         return (
@@ -78,18 +83,18 @@ class PatientShow extends Component
                 <Table>
                     <Header>
                         <Row>
-                            <HeaderCell textAlign = 'center'>Number</HeaderCell>
-                            <HeaderCell textAlign = 'center'>Doctor</HeaderCell>
-                            <HeaderCell textAlign = 'center'>Patient</HeaderCell>
-                            <HeaderCell textAlign = 'center'></HeaderCell>
+                            <HeaderCell textAlign='center'>Number</HeaderCell>
+                            <HeaderCell textAlign='center'>Doctor</HeaderCell>
+                            <HeaderCell textAlign='center'>Patient</HeaderCell>
+                            <HeaderCell textAlign='center'></HeaderCell>
                         </Row>
                     </Header>
                     <Body>
-                        { recordRows }
+                        {recordRows}
                     </Body>
                 </Table>
 
-                <div>Found { this.props.recordCount } record(s).</div>
+                <div>Found {this.props.recordCount} record(s).</div>
             </Layout>
         );
     }
